@@ -6,6 +6,7 @@ type Query         = string
 type Tag           = string
 type SearchString  = string
 type ReplaceString = string
+type Color         = string
 type Position      = int
 type Node          = int
 type Alpha         = float
@@ -14,7 +15,7 @@ type SummariseBy   = AverageBy of TimeUnit
 type Delta         = Delta of int
 type Aggregation   = | Average | Median | Sum | Min | Max | Diff
                      | StdDev | Count | Range | Multiply | Last
- 
+type Consolidation = | Sum | Average | Min | Max | First | Last
 
 
 let private unionToString (x:'a) =
@@ -89,10 +90,41 @@ let averageSeries (query:Query): Query =
 let averageSeriesWithWildcards (position:Position) (query:Query): Query = 
      sprintf "averageSeriesWithWildcards(%s,%i)" query position
 
+let cactiStyle (query:Query): Query =
+    failwith "Need to update the domain model to support this"
+    // https://graphite.readthedocs.io/en/latest/functions.html#graphite.render.functions.cactiStyle
 
-// -----------------------------------------------------
-// Next to implement: https://graphite.readthedocs.io/en/latest/functions.html#graphite.render.functions.cactiStyle
-// -----------------------------------------------------
+let changed (query:Query): Query =
+    sprintf "changed(%s)" query
+
+let color (color:Color) (query:Query): Query = 
+    sprintf "color(%s,'%s')" query color
+
+let consolidateBy (consolidation:Consolidation) (query:Query): Query =
+    let con = consolidation |> unionToString |> lower 
+    sprintf "consolidateBy(%s,'%s')" query con
+
+let constantLine (position:float): Query =
+    sprintf "constantLine(%f)" position
+
+let countSeries (query:Query): Query =
+    sprintf "countSeries(%s)" query
+
+let cumulative (query:Query): Query =
+    sprintf "cumulative(%s)" query
+
+let currentAbove (value:int) (query:Query): Query =
+    sprintf "currentAbove(%s,%i)" query value
+
+let currentBelow (value:int) (query:Query): Query =
+    sprintf "currentBelow(%s,%i)" query value
+
+
+
+// ----------------------------
+// Next to Implement: https://graphite.readthedocs.io/en/latest/functions.html#graphite.render.functions.dashed
+// ----------------------------
+
 
 
 let diffSeries (source:Query) (diffWith:Query): Query =
