@@ -1,14 +1,99 @@
-type Alias       = string
-type Query       = string 
-type TimeUnit    = Minutes of int
-type SummariseBy = Average of TimeUnit
-type Delta       = Delta of int
+open Microsoft.FSharp.Reflection
+open System.Text
+
+type Alias         = string
+type Query         = string 
+type Tag           = string
+type SearchString  = string
+type ReplaceString = string
+type Position      = int
+type Node          = int
+type Alpha         = float
+type TimeUnit      = Minutes of int
+type SummariseBy   = AverageBy of TimeUnit
+type Delta         = Delta of int
+type Aggregation   = | Average | Median | Sum | Min | Max | Diff
+                     | StdDev | Count | Range | Multiply | Last
+ 
+
+
+let private unionToString (x: 'a) =
+    match FSharpValue.GetUnionFields(x, typeof<'a>) with
+    | case, _ -> case.Name
+
+let private lower (x:string) = x.ToLower()
+
+
+
+let absolute (query:Query): Query =
+    sprintf "absolute(%s)" query
+
+let aggregate (aggregation:Aggregation) (query:Query) =
+    let agg = aggregation |> unionToString |> lower 
+    sprintf "aggregate(%s, \"%s\")" query agg
+
+let aggregateLine (aggregation:Aggregation) (query:Query) =
+    let agg = aggregation |> unionToString |> lower 
+    sprintf "aggregateLine(%s, \"%s\")" query agg
+
+let aggregateWithWildcards (aggregation:Aggregation) (query:Query) (position:Position) =
+    let agg = aggregation |> unionToString |> lower 
+    sprintf "aggregateWithWildcards(%s, \"%s\", %i)" query agg position
 
 let alias (alias:Alias) (query:Query): Query = 
     sprintf "alias(%s, \"%s\")" query alias
 
+let aliasByMetric (query:Query): Query = 
+    sprintf "aliasByMetric(%s)" query
+
+let aliasByNode (node:Node) (query:Query): Query = 
+    sprintf "aliasByNode(%s, %i)" query node
+
+let aliasByTags (tag:Tag) (query:Query): Query = 
+    sprintf "aliasByTags(%s, \"%s\")" query tag
+
+let aliasQuery (search:SearchString) (replace:ReplaceString) (newName:Alias) (query:Query): Query = 
+    sprintf "aliasQuery(%s, \"%s\", \"%s\", \"%s\")" query search replace newName
+
+let aliasSub (search:SearchString) (replace:ReplaceString) (query:Query): Query = 
+    sprintf "aliasSub(%s, \"%s\", \"%s\")" query search replace
+
+let alpha (query:Query) (alpha:Alpha): Query =
+    if alpha < 0.0 || alpha > 1.0 then
+        failwith "Alpha value must be between 0.0 and 1.0"
+    else
+        sprintf "alpha(%s, %f)" query alpha            
+
+let applyByNode (node:Node) (templateQuery:Query) (query:Query): Query =
+    sprintf "applyByNode(%s, %i, \"%s\")" query node templateQuery
+
+let areaBetween(query:Query): Query =
+    sprintf "areaBetween(%s)" query
+
+let asPercent (query:Query): Query =
+    failwith "Need to update the domain model to support this"
+    // https://graphite.readthedocs.io/en/latest/functions.html#graphite.render.functions.asPercent
+
+let averageAbove (value:int) (query:Query): Query =
+    sprintf "averageAbove(%s, %i)" query value
+
+let averageBelow (value:int) (query:Query): Query =
+    sprintf "averageBelow(%s, %i)" query value
+
+let averageOutsidePercentile (value:int) (query:Query): Query =
+    sprintf "averageOutsidePercentile(%s, %i)" query value
+
 let averageSeries (query:Query): Query = 
      sprintf "averageSeries(%s)" query
+
+let averageSeriesWithWildcards (position:Position) (query:Query): Query = 
+     sprintf "averageSeriesWithWildcards(%s, %i)" query position
+
+
+// -----------------------------------------------------
+// Next to implement: https://graphite.readthedocs.io/en/latest/functions.html#graphite.render.functions.cactiStyle
+// -----------------------------------------------------
+
 
 let diffSeries (source:Query) (diffWith:Query): Query =
     sprintf "diffSeries(%s,%s)" source diffWith
@@ -28,7 +113,7 @@ let removeBelowValue (value:int) (query:Query): Query =
 
 let summarise (summariseBy:SummariseBy) (query:Query): Query =
     match summariseBy with 
-    | Average(timeUnit) ->
+    | AverageBy(timeUnit) ->
         match timeUnit with
         | Minutes(minutes) -> sprintf "summarize(%s, \"%iminutes\", \"avg\")" query minutes
 
