@@ -18,6 +18,7 @@ type Aggregation   = | Average | Median | Sum | Min | Max | Diff
 type Consolidation = | Sum | Average | Min | Max | First | Last
 
 
+
 let private unionToString (x:'a) =
     match FSharpValue.GetUnionFields(x, typeof<'a>) with
     | case, _ -> case.Name
@@ -119,16 +120,31 @@ let currentAbove (value:int) (query:Query): Query =
 let currentBelow (value:int) (query:Query): Query =
     sprintf "currentBelow(%s,%i)" query value
 
+let dashed (dashLength:float) (query:Query): Query =
+    sprintf "dashed(%s,%f)" query dashLength
 
+let delay (steps:int) (query:Query): Query =
+    sprintf "delay(%s, %i)" query steps
 
-// ----------------------------
-// Next to Implement: https://graphite.readthedocs.io/en/latest/functions.html#graphite.render.functions.dashed
-// ----------------------------
-
-
+let derivative (query:Query): Query =
+    sprintf "derivative(%s)" query
 
 let diffSeries (source:Query) (diffWith:Query): Query =
     sprintf "diffSeries(%s,%s)" source diffWith
+
+let divideSeries (divisors:Query) (dividends:Query): Query =
+    sprintf "divideSeries(%s,%s)" dividends divisors
+
+let drawAsInfinite (query:Query): Query =
+    sprintf "drawAsInfinite(%s)" query
+
+
+
+// -------------------------------
+// Next function to add: https://graphite.readthedocs.io/en/latest/functions.html#graphite.render.functions.events
+// -------------------------------
+
+
 
 let holtWintersConfidenceBands (delta:Delta) (query:Query): Query = 
     match delta with 
