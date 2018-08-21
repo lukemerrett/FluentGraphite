@@ -10,6 +10,7 @@ type Color         = string
 type Position      = int
 type Node          = int
 type Alpha         = float
+type Percentile    = float
 type TimeUnit      = Minutes of int
 type SummariseBy   = AverageBy of TimeUnit
 type Delta         = Delta of int
@@ -155,6 +156,15 @@ let maxSeries (query:Query): Query =
 
 let minSeries (query:Query): Query =
     sprintf "minSeries(%s)" query
+
+let removeAbovePercentile (percentile:Percentile) (query:Query): Query = 
+    sprintf "removeAbovePercentile(%s,%f)" query percentile 
+
+let removeAboveValue (value:int) (query:Query): Query =
+    sprintf "removeAboveValue(%s,%i)" query value
+
+let removeBelowPercentile (percentile:Percentile) (query:Query): Query = 
+    sprintf "removeBelowPercentile(%s,%f)" query percentile 
 
 let removeBelowValue (value:int) (query:Query): Query =
     sprintf "removeBelowValue(%s,%i)" query value
