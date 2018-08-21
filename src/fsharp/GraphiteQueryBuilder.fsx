@@ -147,6 +147,12 @@ let drawAsInfinite (query:Query): Query =
 
 
 
+let group (query:Query): Query = 
+    sprintf "group(%s)" query
+
+let groupByNode (node:Node) (query:Query): Query = 
+    sprintf "groupByNode(%s,%i)" query node
+
 let holtWintersConfidenceBands (delta:Delta) (query:Query): Query = 
     match delta with 
     | Delta(d) -> sprintf "holtWintersConfidenceBands(%s,%i)" query d
